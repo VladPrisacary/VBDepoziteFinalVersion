@@ -1,99 +1,171 @@
 ﻿import React, { useState } from 'react';
 import { getDepozitById, actualizeazaDepozit, stergeDepozit } from "../services/api";
 
-const DepozitManager = () => {
-    const [id, setId] = useState(''); // ID-ul depozitului
-    const [depozit, setDepozit] = useState(null); // Depozitul curent
-    const [updatedData, setUpdatedData] = useState({ name: '', description: '' }); // Datele actualizate ale depozitului
-    const [message, setMessage] = useState(''); // Mesaj de feedback pentru utilizator
+const initialFields = {
+    productType: '',
+    productGroup: '',
+    productName: '',
+    productCode: '',
+    clientType: '',
+    currency: '',
+    amountToOpen: '',
+    fixedTermMonths: '',
+    canBeProlongedReissued: '',
+    interestRatePercent: '',
+    interestPaymentFrequency: '',
+    capitalization: '',
+    topUpPermitted: false,
+    partialWithdrawal: false,
+    partialWithdrawalType: '',
+    earlyClosedBranch: ''
+};
 
-    // Funcție pentru a căuta depozitul după ID
+const DepozitManager = () => {
+    const [id, setId] = useState('');
+    const [depozit, setDepozit] = useState(null);
+    const [updatedData, setUpdatedData] = useState(initialFields);
+    const [message, setMessage] = useState('');
+
     const handleGetDepozit = async () => {
-        if (!id) {
-            setMessage('ID-ul depozitului este necesar!');
+        if (!id.trim()) {
+            setMessage('⚠️ ID-ul depozitului este necesar!');
             return;
         }
 
         const data = await getDepozitById(id);
+
         if (data) {
             setDepozit(data);
-            setUpdatedData({ name: data.name, description: data.description });
+            setUpdatedData({
+                productType: data.productType || '',
+                productGroup: data.productGroup || '',
+                productName: data.productName || '',
+                productCode: data.productCode || '',
+                clientType: data.clientType || '',
+                currency: data.currency || '',
+                amountToOpen: data.amountToOpen || '',
+                fixedTermMonths: data.fixedTermMonths || '',
+                canBeProlongedReissued: data.canBeProlongedReissued || '',
+                interestRatePercent: data.interestRatePercent || '',
+                interestPaymentFrequency: data.interestPaymentFrequency || '',
+                capitalization: data.capitalization || '',
+                topUpPermitted: data.topUpPermitted || false,
+                partialWithdrawal: data.partialWithdrawal || false,
+                partialWithdrawalType: data.partialWithdrawalType || '',
+                earlyClosedBranch: data.earlyClosedBranch || ''
+            });
             setMessage('');
         } else {
             setMessage('Depozitul nu a fost găsit!');
+            setDepozit(null);
         }
     };
 
-    // Funcție pentru a actualiza depozitul
     const handleUpdateDepozit = async () => {
-        if (!id) {
-            setMessage('ID-ul depozitului este necesar!');
+        if (!id.trim()) {
+            setMessage('⚠️ ID-ul este necesar!');
             return;
         }
 
         const data = await actualizeazaDepozit(id, updatedData);
         if (data) {
-            setMessage('Depozitul a fost actualizat cu succes!');
-            setDepozit(data); // Actualizează depozitul cu datele noi
+            setMessage('✅ Depozitul a fost actualizat cu succes!');
+            setDepozit(data);
         } else {
-            setMessage('Eroare la actualizarea depozitului!');
+            setMessage('❌ Eroare la actualizarea depozitului!');
         }
     };
 
-    // Funcție pentru a șterge depozitul
     const handleDeleteDepozit = async () => {
-        if (!id) {
-            setMessage('ID-ul depozitului este necesar!');
+        if (!id.trim()) {
+            setMessage('⚠️ ID-ul este necesar!');
             return;
         }
 
         const data = await stergeDepozit(id);
         if (data) {
-            setMessage('Depozitul a fost șters!');
-            setDepozit(null); // Golește depozitul din stare
-            setUpdatedData({ name: '', description: '' }); // Resetează câmpurile
+            setMessage('🗑️ Depozitul a fost șters!');
+            setDepozit(null);
+            setUpdatedData(initialFields);
         } else {
-            setMessage('Eroare la ștergerea depozitului!');
+            setMessage('❌ Eroare la ștergerea depozitului!');
         }
     };
 
+    const handleChange = (e) => {
+        const { name, value, type, checked } = e.target;
+        setUpdatedData({
+            ...updatedData,
+            [name]: type === 'checkbox' ? checked : value
+        });
+    };
+
     return (
-        <div>
+        <div style={{ padding: '20px', maxWidth: '800px', margin: '0 auto' }}>
             <h1>Gestionare Depozit</h1>
-            <div>
+
+            <div style={{ marginBottom: '15px' }}>
                 <input
                     type="text"
                     placeholder="Introdu ID depozit"
                     value={id}
                     onChange={(e) => setId(e.target.value)}
+                    style={{ padding: '8px', width: '100%' }}
                 />
-                <button onClick={handleGetDepozit}>Vizualizează Depozit</button>
+                <button onClick={handleGetDepozit} style={{ marginTop: '10px' }}>🔍 Caută Depozit</button>
             </div>
 
-            {message && <p>{message}</p>}
+            {message && <p><strong>{message}</strong></p>}
 
             {depozit && (
-                <div>
-                    <h2>Depozit: {depozit.name}</h2>
-                    <p>Description: {depozit.description}</p>
+                <div style={{
+                    padding: '20px',
+                    border: '1px solid #ccc',
+                    borderRadius: '10px',
+                    backgroundColor: '#f5f5f5'
+                }}>
+                    <h2>📦 Informații Depozit</h2>
+                    <p><strong>ID:</strong> {depozit._id}</p>
 
-                    <h3>Actualizează Depozit</h3>
-                    <input
-                        type="text"
-                        placeholder="Nume Depozit"
-                        value={updatedData.name}
-                        onChange={(e) => setUpdatedData({ ...updatedData, name: e.target.value })}
-                    />
-                    <input
-                        type="text"
-                        placeholder="Descriere Depozit"
-                        value={updatedData.description}
-                        onChange={(e) => setUpdatedData({ ...updatedData, description: e.target.value })}
-                    />
-                    <button onClick={handleUpdateDepozit}>Actualizează</button>
+                    {Object.entries(updatedData).map(([key, value]) => (
+                        <div key={key} style={{ marginBottom: '10px' }}>
+                            <label style={{ display: 'block', marginBottom: '5px' }}>
+                                {key}
+                            </label>
+                            {typeof value === 'boolean' ? (
+                                <input
+                                    type="checkbox"
+                                    name={key}
+                                    checked={value}
+                                    onChange={handleChange}
+                                />
+                            ) : (
+                                <input
+                                    type="text"
+                                    name={key}
+                                    value={value}
+                                    onChange={handleChange}
+                                    style={{ padding: '8px', width: '100%' }}
+                                />
+                            )}
+                        </div>
+                    ))}
 
-                    <h3>Șterge Depozit</h3>
-                    <button onClick={handleDeleteDepozit}>Șterge</button>
+                    <div style={{ marginTop: '20px' }}>
+                        <button onClick={handleUpdateDepozit} style={{ marginRight: '10px' }}>💾 Actualizează</button>
+                        <button
+                            onClick={handleDeleteDepozit}
+                            style={{
+                                backgroundColor: '#e53e3e',
+                                color: 'white',
+                                padding: '10px',
+                                border: 'none',
+                                borderRadius: '5px'
+                            }}
+                        >
+                            🗑️ Șterge
+                        </button>
+                    </div>
                 </div>
             )}
         </div>

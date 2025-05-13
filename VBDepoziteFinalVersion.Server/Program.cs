@@ -26,6 +26,7 @@ namespace VBDepoziteFinalVersion.Server
             builder.Services.Configure<DataBaseSetting  >(
                 builder.Configuration.GetSection("DatabaseSettings"));
             builder.Services.AddSingleton<DepozitService>();
+            builder.Services.AddSingleton<CalculareService>();
             builder.Services.AddControllers();
             builder.Services.AddEndpointsApiExplorer();
             builder.Services.AddSwaggerGen();
